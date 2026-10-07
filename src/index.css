@@ -1,3 +1,562 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+import { useMemo, useState } from 'react';
+import SectionHeading from './components/SectionHeading';
+import {
+  billingLabels,
+  coaches,
+  discountMap,
+  plans,
+  schedule,
+  stories,
+  weekDays,
+} from './data/siteData';
+
+const formatCurrency = (value) => `₹${Math.round(value).toLocaleString('en-IN')}`;
+
+const getWhatsAppLink = (text) =>
+  `https://wa.me/919999999999?text=${encodeURIComponent(text)}`;
+
+export default function App() {
+  const [billingPeriod, setBillingPeriod] = useState(1);
+  const [selectedPlan, setSelectedPlan] = useState(1);
+  const [selectedClass, setSelectedClass] = useState('');
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [errors, setErrors] = useState({ name: '', phone: '' });
+  const [quoteIndex, setQuoteIndex] = useState(0);
+
+  const selectedPlanData = plans[selectedPlan];
+
+  const availableClasses = useMemo(() => {
+    const classSet = new Set();
+    Object.values(schedule).forEach((daySlots) => {
+      daySlots.forEach((slot) => {
+        if (slot) {
+          const className = slot.split('|')[0];
+          classSet.add(className);
+        }
+      });
+    });
+    return [...classSet];
+  }, []);
+
+  const currentStory = stories[quoteIndex];
+
+  const selectedPlanPrice =
+    selectedPlanData.m * (1 - (discountMap[billingPeriod] ?? 0));
+
+  const bookingSummary = {
+    plan: `${selectedPlanData.n} · ${formatCurrency(selectedPlanPrice)}/mo`,
+    billing: billingLabels[billingPeriod],
+    className: selectedClass || 'Not sure yet',
+  };
+
+  const updatePlanSelection = (nextPeriod, nextPlan) => {
+    setBillingPeriod(nextPeriod);
+    setSelectedPlan(nextPlan);
+  };
+
+  const validateForm = () => {
+    const nextErrors = {
+      name: '',
+      phone: '',
+    };
+
+    if (name.trim().length < 2) {
+      nextErrors.name = 'Enter your full name.';
+    }
+
+    const normalizedPhone = phone.replace(/[\s-]/g, '').replace(/^\+?91/, '');
+    if (!/^[6-9]\d{9}$/.test(normalizedPhone)) {
+      nextErrors.phone = 'Enter a valid 10-digit mobile number.';
+    }
+
+    setErrors(nextErrors);
+    return !nextErrors.name && !nextErrors.phone;
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    const normalizedPhone = phone.replace(/[\s-]/g, '').replace(/^\+?91/, '');
+    const message = [
+      'Hi Kinetic Fitness, I want to join.',
+      `Name: ${name.trim()}`,
+      `Phone: ${normalizedPhone}`,
+      `Plan: ${selectedPlanData.n} (${billingLabels[billingPeriod]})`,
+      `Class to try: ${selectedClass || 'Not sure yet'}`,
+    ].join('\n');
+
+    window.open(getWhatsAppLink(message), '_blank', 'noopener');
+  };
+
+  const handleStoryNext = () => {
+    setQuoteIndex((prev) => (prev + 1) % stories.length);
+  };
+
+  const handleStoryPrevious = () => {
+    setQuoteIndex((prev) => (prev - 1 + stories.length) % stories.length);
+  };
+
+  return (
+    <>
+      <nav className="top">
+        <div className="wrap">
+          <a className="lg" href="#top">
+            Kinetic<i>.</i>Fit
+          </a>
+
+          <div className="links">
+            <a href="#programs">Programs</a>
+            <a href="#plans">Plans</a>
+            <a href="#coaches">Coaches</a>
+            <a href="#schedule">Schedule</a>
+            <a href="#join">Join</a>
+            <a href="#contact">Contact</a>
+          </div>
+
+          <a className="btn" href="#join" style={{ padding: '9px 18px', fontSize: '.8rem' }}>
+            Free trial
+          </a>
+        </div>
+      </nav>
+
+      <header className="hero" id="top">
+        <div className="ph bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80')" }}>
+          <button className="add" type="button">
+            + Add hero photo
+          </button>
+        </div>
+        <div className="ov" />
+
+        <div className="wrap">
+          <span className="eyebrow">Gym &amp; Fitness Studio</span>
+          <h1>
+            Kinetic
+            <br />
+            <span>Fitness</span>
+          </h1>
+          <p>
+            Strength training, HIIT, yoga and personal coaching under one roof.
+            Small classes, certified coaches, real results.
+          </p>
+
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <a className="btn" href="#join">
+              Book free trial
+            </a>
+            <a className="btn o" href="#plans">
+              View plans
+            </a>
+          </div>
+
+          <div className="stats">
+            <div>
+              <b>5:30 AM</b>
+              <span>Doors open</span>
+            </div>
+            <div>
+              <b>14</b>
+              <span>Max per class</span>
+            </div>
+            <div>
+              <b>3</b>
+              <span>Certified coaches</span>
+            </div>
+            <div>
+              <b>6</b>
+              <span>Class types</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="tick" aria-hidden="true">
+        <div id="tk">Strength · HIIT · Yoga · Personal Training · Free trial · </div>
+      </div>
+
+      <section className="s" id="why">
+        <div className="wrap">
+          <SectionHeading num="Why Kinetic" title="Built for results" />
+          <div className="why">
+            <div>
+              <h3>Elite coaching</h3>
+              <p>
+                Certified coaches design programs around your goal, whether it is
+                strength, weight loss or endurance.
+              </p>
+            </div>
+            <div>
+              <h3>Modern equipment</h3>
+              <p>
+                Free weights, machines and cardio gear that are maintained daily and
+                never crowded.
+              </p>
+            </div>
+            <div>
+              <h3>Comfort and care</h3>
+              <p>
+                Clean locker rooms, showers and small classes so every session feels
+                safe and easy.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="s" id="programs" style={{ paddingBottom: 0 }}>
+        <div className="wrap">
+          <SectionHeading num="Programs" title="Train your way" />
+        </div>
+
+        <div className="prog">
+          <div
+            className="ph"
+            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1000&q=80')" }}
+          >
+            <button className="add" type="button">
+              + Add photo
+            </button>
+          </div>
+          <div className="tx">
+            <h3>Ignite your energy, boost endurance</h3>
+            <p>
+              Treadmills, rowers, bikes and HIIT circuits to build heart health and
+              burn calories. Choose steady-state or high intensity.
+            </p>
+            <a className="btn o" href="#join">
+              Book a class
+            </a>
+          </div>
+        </div>
+
+        <div className="prog">
+          <div
+            className="ph"
+            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1000&q=80')" }}
+          >
+            <button className="add" type="button">
+              + Add photo
+            </button>
+          </div>
+          <div className="tx">
+            <h3>Build strength, sculpt your body</h3>
+            <p>
+              Free weights, racks and machines with coaching for beginners and
+              experienced lifters alike. Track progress every month.
+            </p>
+            <a className="btn o" href="#join">
+              Book a class
+            </a>
+          </div>
+        </div>
+
+        <div className="prog">
+          <div
+            className="ph"
+            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=1000&q=80')" }}
+          >
+            <button className="add" type="button">
+              + Add photo
+            </button>
+          </div>
+          <div className="tx">
+            <h3>Move better, feel better</h3>
+            <p>
+              Yoga, mobility and boxing classes that improve flexibility, posture and
+              fitness. Capped at 14 people.
+            </p>
+            <a className="btn o" href="#join">
+              Book a class
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section className="s" id="plans">
+        <div className="wrap">
+          <SectionHeading num="01 / Membership" title="Pick your plan" subtitle="No joining fee. Longer commitments cost less per month." />
+
+          <div className="seg" role="group" aria-label="Billing">
+            {[1, 3, 12].map((period) => (
+              <button
+                key={period}
+                type="button"
+                aria-pressed={billingPeriod === period}
+                onClick={() => setBillingPeriod(period)}
+              >
+                {billingLabels[period]}
+              </button>
+            ))}
+          </div>
+
+          <div className="prow-list">
+            {plans.map((plan, index) => {
+              const offerPrice = plan.m * (1 - (discountMap[billingPeriod] ?? 0));
+
+              return (
+                <div className="prow" key={plan.n}>
+                  <div>
+                    <small>{plan.t}</small>
+                    <h3>{plan.n}</h3>
+                  </div>
+                  <ul>
+                    {plan.f.map((feature) => (
+                      <li key={feature}>{feature}</li>
+                    ))}
+                  </ul>
+                  <div className="pr">
+                    {formatCurrency(offerPrice)}
+                    <small>per month</small>
+                  </div>
+                  <button
+                    className={`btn${index === selectedPlan ? '' : ' o'}`}
+                    type="button"
+                    data-pl={index}
+                    onClick={() => updatePlanSelection(billingPeriod, index)}
+                  >
+                    Select
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="s" id="coaches">
+        <div className="wrap">
+          <SectionHeading
+            num="02 / Coaches"
+            title="Train with the best"
+            subtitle="Certified, first-aid trained, and focused on your form."
+          />
+
+          <div className="coach-list">
+            {coaches.map((coach, index) => (
+              <div className="coach" key={coach.name}>
+                <div className="n">0{index + 1}</div>
+                <div>
+                  <h3>{coach.name}</h3>
+                  <em>{coach.role}</em>
+                </div>
+                <p>{coach.bio}</p>
+                <b>{coach.badge}</b>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="s" id="schedule">
+        <div className="wrap">
+          <SectionHeading
+            num="03 / Classes"
+            title="Weekly timetable"
+            subtitle="Tap any class to add it to your registration."
+          />
+
+          <div className="gw">
+            <table>
+              <thead>
+                <tr>
+                  <th></th>
+                  {weekDays.map((day) => (
+                    <th key={day}>{day}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(schedule).map(([time, daySlots]) => (
+                  <tr key={time}>
+                    <td>{time.toUpperCase()}</td>
+                    {daySlots.map((slot, index) => {
+                      if (!slot) {
+                        return <td key={`${time}-${index}`}></td>;
+                      }
+
+                      const [className, coachName] = slot.split('|');
+                      const isActive = selectedClass === className;
+
+                      return (
+                        <td key={`${time}-${index}`}>
+                          <button
+                            type="button"
+                            className={`cell${isActive ? ' on' : ''}`}
+                            onClick={() => setSelectedClass(className)}
+                          >
+                            {className}
+                            <small>{coachName}</small>
+                          </button>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="note">Scroll sideways on a phone. Classes are capped at 14 people.</p>
+        </div>
+      </section>
+
+      <section className="s" id="join">
+        <div className="wrap join">
+          <div>
+            <SectionHeading num="04 / Register" title="Start in 3 steps" />
+
+            <div className="step" data-n="1">
+              <h3>Choose a plan</h3>
+              <div className="opts">
+                {plans.map((plan, index) => (
+                  <button
+                    key={plan.n}
+                    type="button"
+                    aria-pressed={index === selectedPlan}
+                    onClick={() => setSelectedPlan(index)}
+                  >
+                    {plan.n}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="step" data-n="2">
+              <h3>Try a class</h3>
+              <div className="opts">
+                <button
+                  type="button"
+                  aria-pressed={selectedClass === ''}
+                  onClick={() => setSelectedClass('')}
+                >
+                  Not sure yet
+                </button>
+                {availableClasses.map((className) => (
+                  <button
+                    key={className}
+                    type="button"
+                    aria-pressed={selectedClass === className}
+                    onClick={() => setSelectedClass(className)}
+                  >
+                    {className}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <form className="step" data-n="3" id="reg" noValidate onSubmit={handleSubmit}>
+              <h3>Your details</h3>
+              <label htmlFor="n">Full name</label>
+              <input
+                id="n"
+                autoComplete="name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+              />
+              <div className="err">{errors.name}</div>
+
+              <label htmlFor="p">WhatsApp number</label>
+              <input
+                id="p"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="10-digit mobile"
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+              />
+              <div className="err">{errors.phone}</div>
+
+              <button className="btn" type="submit">
+                Send on WhatsApp
+              </button>
+            </form>
+          </div>
+
+          <aside className="sum" aria-live="polite">
+            <h3>Your booking</h3>
+            <dl>
+              <dt>Plan</dt>
+              <dd>{bookingSummary.plan}</dd>
+              <dt>Billing</dt>
+              <dd>{bookingSummary.billing}</dd>
+              <dt>First class</dt>
+              <dd>{bookingSummary.className}</dd>
+            </dl>
+            <p className="note" style={{ margin: 0 }}>
+              We confirm your spot on WhatsApp within a few hours.
+            </p>
+          </aside>
+        </div>
+      </section>
+
+      <section className="s" id="stories">
+        <div className="wrap q">
+          <SectionHeading num="05 / Results" title="Member stories" />
+          <p>{`“${currentStory[0]}”`}</p>
+          <cite>
+            <b>{currentStory[1]}</b> · {currentStory[2]}
+          </cite>
+          <div className="ctl">
+            <button type="button" onClick={handleStoryPrevious} aria-label="Previous story">
+              ←
+            </button>
+            <button type="button" onClick={handleStoryNext} aria-label="Next story">
+              →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="s" id="contact">
+        <div className="wrap">
+          <SectionHeading num="06 / Contact" title="Find us. Talk to us." />
+          <div className="ct">
+            <div>
+              <b>WhatsApp</b>
+              <a href={getWhatsAppLink("Hi Kinetic Fitness, I'd like to know more about membership.")}>Message us for plans or a trial</a>
+            </div>
+            <div>
+              <b>Call</b>
+              <a href="tel:+919999999999">+91 99999 99999</a>
+            </div>
+            <div>
+              <b>Hours</b>
+              Mon–Sat 5:30 AM – 10 PM
+              <br />
+              Sun 7 AM – 12 PM
+            </div>
+            <div>
+              <b>Address</b>
+              Your street address here
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <div className="wrap">
+          © 2026 Kinetic Fitness. Consult a doctor before starting any exercise
+          program if you have a health condition.
+        </div>
+      </footer>
+
+      <nav className="dock" aria-label="Quick contact">
+        <a href="tel:+919999999999">Call</a>
+        <a
+          className="w"
+          href={getWhatsAppLink("Hi Kinetic Fitness, I'd like to know more about membership.")}
+          target="_blank"
+          rel="noreferrer"
+        >
+          WhatsApp us
+        </a>
+        <a href="#join">Join</a>
+      </nav>
+    </>
+  );
+}
