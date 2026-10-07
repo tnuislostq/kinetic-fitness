@@ -11,7 +11,6 @@ import {
 } from './data/siteData';
 
 const formatCurrency = (value) => `₹${Math.round(value).toLocaleString('en-IN')}`;
-
 const getWhatsAppLink = (text) =>
   `https://wa.me/919999999999?text=${encodeURIComponent(text)}`;
 
@@ -24,42 +23,30 @@ export default function App() {
   const [errors, setErrors] = useState({ name: '', phone: '' });
   const [quoteIndex, setQuoteIndex] = useState(0);
 
-  const selectedPlanData = plans[selectedPlan];
-
   const availableClasses = useMemo(() => {
     const classSet = new Set();
     Object.values(schedule).forEach((daySlots) => {
       daySlots.forEach((slot) => {
         if (slot) {
-          const className = slot.split('|')[0];
-          classSet.add(className);
+          classSet.add(slot.split('|')[0]);
         }
       });
     });
     return [...classSet];
   }, []);
 
+  const selectedPlanData = plans[selectedPlan];
   const currentStory = stories[quoteIndex];
-
-  const selectedPlanPrice =
-    selectedPlanData.m * (1 - (discountMap[billingPeriod] ?? 0));
+  const currentPrice = selectedPlanData.m * (1 - (discountMap[billingPeriod] ?? 0));
 
   const bookingSummary = {
-    plan: `${selectedPlanData.n} · ${formatCurrency(selectedPlanPrice)}/mo`,
+    plan: `${selectedPlanData.n} · ${formatCurrency(currentPrice)}/mo`,
     billing: billingLabels[billingPeriod],
     className: selectedClass || 'Not sure yet',
   };
 
-  const updatePlanSelection = (nextPeriod, nextPlan) => {
-    setBillingPeriod(nextPeriod);
-    setSelectedPlan(nextPlan);
-  };
-
   const validateForm = () => {
-    const nextErrors = {
-      name: '',
-      phone: '',
-    };
+    const nextErrors = { name: '', phone: '' };
 
     if (name.trim().length < 2) {
       nextErrors.name = 'Enter your full name.';
@@ -125,7 +112,13 @@ export default function App() {
       </nav>
 
       <header className="hero" id="top">
-        <div className="ph bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80')" }}>
+        <div
+          className="ph bg"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80')",
+          }}
+        >
           <button className="add" type="button">
             + Add hero photo
           </button>
@@ -140,8 +133,8 @@ export default function App() {
             <span>Fitness</span>
           </h1>
           <p>
-            Strength training, HIIT, yoga and personal coaching under one roof.
-            Small classes, certified coaches, real results.
+            Strength training, HIIT, yoga and personal coaching under one roof. Small
+            classes, certified coaches, real results.
           </p>
 
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -215,7 +208,10 @@ export default function App() {
         <div className="prog">
           <div
             className="ph"
-            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1000&q=80')" }}
+            style={{
+              backgroundImage:
+                "url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1000&q=80')",
+            }}
           >
             <button className="add" type="button">
               + Add photo
@@ -224,8 +220,8 @@ export default function App() {
           <div className="tx">
             <h3>Ignite your energy, boost endurance</h3>
             <p>
-              Treadmills, rowers, bikes and HIIT circuits to build heart health and
-              burn calories. Choose steady-state or high intensity.
+              Treadmills, rowers, bikes and HIIT circuits to build heart health and burn
+              calories. Choose steady-state or high intensity.
             </p>
             <a className="btn o" href="#join">
               Book a class
@@ -236,7 +232,10 @@ export default function App() {
         <div className="prog">
           <div
             className="ph"
-            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1000&q=80')" }}
+            style={{
+              backgroundImage:
+                "url('https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1000&q=80')",
+            }}
           >
             <button className="add" type="button">
               + Add photo
@@ -257,7 +256,10 @@ export default function App() {
         <div className="prog">
           <div
             className="ph"
-            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=1000&q=80')" }}
+            style={{
+              backgroundImage:
+                "url('https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=1000&q=80')",
+            }}
           >
             <button className="add" type="button">
               + Add photo
@@ -278,7 +280,11 @@ export default function App() {
 
       <section className="s" id="plans">
         <div className="wrap">
-          <SectionHeading num="01 / Membership" title="Pick your plan" subtitle="No joining fee. Longer commitments cost less per month." />
+          <SectionHeading
+            num="01 / Membership"
+            title="Pick your plan"
+            subtitle="No joining fee. Longer commitments cost less per month."
+          />
 
           <div className="seg" role="group" aria-label="Billing">
             {[1, 3, 12].map((period) => (
@@ -295,7 +301,7 @@ export default function App() {
 
           <div className="prow-list">
             {plans.map((plan, index) => {
-              const offerPrice = plan.m * (1 - (discountMap[billingPeriod] ?? 0));
+              const discountedPrice = plan.m * (1 - (discountMap[billingPeriod] ?? 0));
 
               return (
                 <div className="prow" key={plan.n}>
@@ -309,14 +315,15 @@ export default function App() {
                     ))}
                   </ul>
                   <div className="pr">
-                    {formatCurrency(offerPrice)}
+                    {formatCurrency(discountedPrice)}
                     <small>per month</small>
                   </div>
                   <button
                     className={`btn${index === selectedPlan ? '' : ' o'}`}
                     type="button"
-                    data-pl={index}
-                    onClick={() => updatePlanSelection(billingPeriod, index)}
+                    onClick={() => {
+                      setSelectedPlan(index);
+                    }}
                   >
                     Select
                   </button>
@@ -375,10 +382,10 @@ export default function App() {
                     <td>{time.toUpperCase()}</td>
                     {daySlots.map((slot, index) => {
                       if (!slot) {
-                        return <td key={`${time}-${index}`}></td>;
+                        return <td key={`${time}-${index}`} />;
                       }
 
-                      const [className, coachName] = slot.split('|');
+                      const [className, trainerName] = slot.split('|');
                       const isActive = selectedClass === className;
 
                       return (
@@ -386,13 +393,10 @@ export default function App() {
                           <button
                             type="button"
                             className={`cell${isActive ? ' on' : ''}`}
-                            onClick={() => {
-                              setSelectedClass(className);
-                              setErrors((prev) => ({ ...prev, name: prev.name }));
-                            }}
+                            onClick={() => setSelectedClass(className)}
                           >
                             {className}
-                            <small>{coachName}</small>
+                            <small>{trainerName}</small>
                           </button>
                         </td>
                       );
@@ -542,10 +546,7 @@ export default function App() {
       </section>
 
       <footer>
-        <div className="wrap">
-          © 2026 Kinetic Fitness. Consult a doctor before starting any exercise
-          program if you have a health condition.
-        </div>
+        <div className="wrap">© 2026 Kinetic Fitness. Consult a doctor before starting any exercise program if you have a health condition.</div>
       </footer>
 
       <nav className="dock" aria-label="Quick contact">
@@ -588,97 +589,3 @@ export default function App() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"use strict";
